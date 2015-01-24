@@ -115,11 +115,11 @@ The uncertainty in our conclusion that MPG for manual transmission is better by 
 
 This is the interval that quarantees that manual transmission has better MPG with 78 % confidence.
 
-## Proof that the report was done in Rmd (knitr).
+## Proof that the report was done in Rmd (knitr)
 
 Rmd code generating this report can be found at the github with the following link:
 
-link
+https://github.com/zanlik1977/Regression_Models_Project
 
 
 ## Apendix
