@@ -1,0 +1,147 @@
+---
+title: "Influence of the Type of Transmission on MPG"
+author: "Miroslav Micic"
+date: "January 22, 2015"
+output: pdf_document
+geometry: margin=0.5in
+---
+
+## Executive Summary
+
+We analyse data in "mtcars" data set in order to establish if automatic or manual transmission is better for MPG.
+We look into two models: the simplest model where we look into correlation between MPG and type of transmission when all other variables are disregarded; and the best fit model where all important (relevant) variables are taken into account.
+We find that in both models manual transmission has better MPG than automatic transmission. In the simplest model this difference is 7.24 MPG. When all relevant variables are included, manual transmission is still better by 1.81 MPG. The 95 % confidence interval is [-1.06, 4.68] MPG so MPG might not always be larger for manual transmission. Confidence interval which guarantees this is [0.05, 3.56] with 78 % confidence.
+
+## Exploratory Data Analysis
+
+
+```{r look, echo=FALSE, results="hide"}
+  data(mtcars)
+  head(mtcars,3)
+```
+
+
+
+```{r reading_data, echo=FALSE}
+  data(mtcars)
+  mtcars$cyl <- factor(mtcars$cyl)
+  mtcars$vs <- factor(mtcars$vs)
+  mtcars$am <- factor(mtcars$am)
+  mtcars$gear <- factor(mtcars$gear)
+  mtcars$carb <- factor(mtcars$carb)
+```
+
+First, we load in "mtcars" data set. After visually inspecting data with head() function we decide to 
+transform variables "cyl", "vs", "am", "gear", and "carb" into factors. 
+Before any detailed analysis, we perform a visual inspection of possible correlations between the variables
+in the "mtcars" data set. Figure 1 in the Appendix compares all pairs of variables. It seems that there is a definite 
+correlation between "mpg" and "cyl", "disp", "hp", "drat", "wt" variables. Figure 2 in the Appendix shows boxplot of "mpg" for both manual and automatic transmission. We examine this later in more details.
+
+
+## Multiple Models
+
+Simplest Model:
+
+We start with the simplest model where "mpg" is a function of "am" only. Here we look how "mpg" changes between
+automatic and manual transmission disregarding all other variables in the data set.
+
+```{r simplest_model}
+  fit_simple <- lm(mpg ~ am, data = mtcars)
+  summary(fit_simple)$coeff
+```
+
+In this context, first estimate is the mean mpg for automatic transmission and second estimate is the increase in the mean mpg with manual transmission. This tells us that mean "mpg" = 17.15 for automatic and 24.39 for manual transmission.
+
+Best model:
+
+We use R function step() to perform variable selection and find the set of variables that best fit the data. We call these variables "relevant variables".
+
+```{r step, results="hide"}
+  null=lm(mpg~1, data=mtcars)
+  full=lm(mpg~., data=mtcars)
+  fit_best <- step(null, scope=list(lower=null, upper=full), direction="forward")
+```
+
+The best fit is: mpg ~ wt + cyl + hp + am
+
+```{r}
+  summary(fit_best)$coeff
+```
+
+Estimate in the last row of the summary shows manual transmission increase in "mpg" using automatic transmission as 
+a reference set, and keeping all other relevant variables constant. Hence, manual transmission has better MPG
+than the automatic transmission by 1.8 MPG.
+
+
+## Residuals and Model Diagnostics
+
+The diagnostic of residuals for the best fit is presented in Figure 3 in the Appendix. Residuals versus fitted plot
+and scale-location plot show that there is no pattern which means that our fit is good. The normal Q-Q plot
+shows that residuals are approximately normally distributed. Residuals versus leverage plot shows that there
+might be some influence of particular points on the coefficients. We investigate this further by looking into
+dfbetas and hatvalues. The change in the coefficients if some point is taken out or not is represented by dfbetas.
+We sum dfbetas for each type of car to get the cars with the largest influence: 
+
+```{r dfbetas, echo=FALSE}
+  beta <- abs(dfbetas(fit_best))
+  beta_sum <- apply(beta, 1, sum)
+  head(sort(beta_sum, decreasing=TRUE),3)
+```
+
+Cars with largest hatvalues are:
+
+
+```{r hatvalues, echo=FALSE}
+  hat <- hatvalues(fit_best)
+  head(sort(hat, decreasing=TRUE),3)
+```
+
+## Quantify the Uncertainty by Statistical Inference 
+
+The uncertainty in the conclusion that MPG is better with manual transmission can be quantified
+by calculating the 95 % confidence interval for our intercept of 1.81 MPG. We do this by adding and subtracting
+the standard deviation of the intercept multiplied by the t-quantile:
+
+```{r}
+  sumCoef <- summary(fit_best)$coefficients
+  sumCoef[6,1] + c(-1,1) * qt(.975, df=fit_best$df) * sumCoef[6,2]
+```
+
+The uncertainty in our conclusion that MPG for manual transmission is better by 1.81 MPG is in the interval [-1.06, 4.68] MPG. 
+
+```{r}
+  sumCoef[6,1] + c(-1,1) * qt(.89, df=fit_best$df) * sumCoef[6,2]
+```
+
+This is the interval that quarantees that manual transmission has better MPG with 78 % confidence.
+
+## Proof that the report was done in Rmd (knitr).
+
+Rmd code generating this report can be found at the github with the following link:
+
+link
+
+
+## Apendix
+
+Figure 1
+
+```{r figure_1, echo=FALSE}
+  pairs(mtcars, panel=panel.smooth)
+```
+
+
+Figure 2
+
+```{r box_plot, echo=FALSE}
+  library(ggplot2) 
+  ggplot(mtcars, aes(am, mpg)) + geom_boxplot() + 
+  labs(x = "Transmission type [0 for automatic, 1 for manual]", y = "MPG [miles per gallon]")
+```
+
+Figure 3
+
+```{r figure_2, echo=FALSE}
+  par(mfrow=c(2,2))
+  plot(fit_best)
+```
