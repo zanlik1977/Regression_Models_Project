@@ -91,11 +91,10 @@ We use anova () function to compare our three models in the following order: bes
 
 ```{r comparing_models, echo=FALSE}
   library(pander)
-  pander(anova(fit_simple, fit_best, fit_complete), caption = "Comparison, best to simplest model in the second row, and 
-         complete to best model in the last row.")
+  pander(anova(fit_simple, fit_best, fit_complete), caption = "Comparison, simplest model to itself in the first row, best to simplest model in the second row, and complete to best model in the last row.")
 ```
 
-Table 1 shows that there is a very significant difference between best and simplest model (P-value for F-statistics in the second row of the table 1). This means that variables added in the best model are important. On the other hand, P-value for F-statistics in the third row shows that there is almost no difference between complete and best model. Therefore, it would be redundant to use complete model since adding more variables does not not change anything.
+Table 1 shows that there is a very significant difference between best and simplest model (P-value for F-statistics in the second row of the table 1). This means that variables added in the best model are important. On the other hand, P-value for F-statistics in the third row shows that there is almost no difference between complete and best model. Therefore, it would be redundant to use complete model since adding more variables does not change anything.
 
 ## Residuals and Model Diagnostics
 
@@ -103,24 +102,24 @@ The diagnostic of residuals for the best fit is presented in Figure 3 in the App
 and scale-location plot show that there is no pattern which means that our fit is good. The normal Q-Q plot
 shows that residuals are approximately normally distributed. Residuals versus leverage plot shows that there
 might be some influence of particular points on the coefficients. We investigate this further by looking into
-dfbetas and hatvalues. The change in the coefficients if some point is taken out or not is represented by dfbetas.
-We sum dfbetas for each type of car to get the cars with the largest accumulated influence on the fit coefficients. 
+dfbetas and hatvalues. The change in the coefficients if some point is taken out or not, is represented by dfbetas.
+We look into the absolute values of dfbetas for each type of car to see if there is an influence on the fit coefficients. 
 
 ```{r dfbetas, echo=FALSE, results="hide"}
   beta <- abs(dfbetas(fit_best))
-  beta_sum <- apply(beta, 1, sum)
-  head(sort(beta_sum, decreasing=TRUE),3)
+  beta
 ```
 
-These are: Toyota Corona with dfbeta = 3.097, Chrysler Imperial with dfbeta = 2.896, and Volvo 142E with dfbeta = 1.930.
-
+We find that there are no cars with dfbetas larger than 1 which is usually considered to be a cutoff
+where observation becomes overly influential on the estimated coefficients.
 
 ```{r hatvalues, echo=FALSE, results="hide"}
   hat <- hatvalues(fit_best)
   head(sort(hat, decreasing=TRUE),3)
 ```
 
-Cars with the largest hatvalues are: Maserati Bora with hatvalue = 0.471, Lincoln Continental with hatvalue = 0.294, and Toyota Corona with hatvalue = 0.278. These cars are the biggest outliers. Toyota Corona has large values of both dfbeta and hatvalue parameters. In conclusion, Toyota Corona is the car that deviates from the best fit more than any other car. 
+Cars with the largest hatvalues are: Maserati Bora with hatvalue = 0.471, Lincoln Continental with hatvalue = 0.294, and Toyota Corona with hatvalue = 0.278. These cars are the biggest outliers however hatvalues are smaller than 1. 
+In conclusion, there is no reason to remove any data from the data set.
 
 
 ## Quantify the Uncertainty by Statistical Inference 
@@ -154,7 +153,7 @@ Rmd code generating this report can be found at the github with the following li
 https://github.com/zanlik1977/Regression_Models_Project
 
 
-## Apendix
+## Appendix
 
 Figure 1
 
